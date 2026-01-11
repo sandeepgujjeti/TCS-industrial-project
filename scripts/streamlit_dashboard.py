@@ -65,7 +65,7 @@ df = df.sort_values(by="purchase_date")
 # =====================================================
 # SIDEBAR FILTERS
 # =====================================================
-st.sidebar.markdown("## 🔍 Filters")
+st.sidebar.markdown("##  Filters")
 
 date_range = st.sidebar.date_input(
     "Date Range",
@@ -104,17 +104,17 @@ st.divider()
 # =====================================================
 k1, k2, k3, k4 = st.columns(4)
 
-k1.metric("📦 Orders", f"{len(filtered_df):,}")
-k2.metric("💰 Revenue", f"${filtered_df['total_purchase_amount'].sum():,.0f}")
-k3.metric("🧾 Avg Order", f"${filtered_df['total_purchase_amount'].mean():.2f}")
-k4.metric("🔁 Return Rate", f"{filtered_df['returns'].mean()*100:.1f}%")
+k1.metric(" Orders", f"{len(filtered_df):,}")
+k2.metric(" Revenue", f"${filtered_df['total_purchase_amount'].sum():,.0f}")
+k3.metric(" Avg Order", f"${filtered_df['total_purchase_amount'].mean():.2f}")
+k4.metric(" Return Rate", f"{filtered_df['returns'].mean()*100:.1f}%")
 
 st.divider()
 
 # =====================================================
 # REVENUE BY CATEGORY (BAR)
 # =====================================================
-st.subheader("📊 Revenue by Product Category")
+st.subheader(" Revenue by Product Category")
 
 rev_cat = (
     filtered_df.groupby("product_category")["total_purchase_amount"]
@@ -139,7 +139,7 @@ st.divider()
 # =====================================================
 # PAYMENT METHOD (PIE)
 # =====================================================
-st.subheader("💳 Payment Method Distribution")
+st.subheader(" Payment Method Distribution")
 
 payment_data = filtered_df["payment_method"].value_counts()
 
@@ -161,7 +161,7 @@ st.divider()
 # =====================================================
 # CUSTOMER CHURN (PIE – 0 & 1 EXPLAINED)
 # =====================================================
-st.subheader("🧑‍🤝‍🧑 Customer Churn")
+st.subheader(" Customer Churn")
 
 churn_map = {0: "Retained Customers", 1: "Churned Customers"}
 churn_data = filtered_df["churn"].map(churn_map).value_counts()
@@ -185,7 +185,7 @@ st.divider()
 # =====================================================
 # REVENUE OVER TIME (MONTHLY LINE)
 # =====================================================
-st.subheader("📈 Revenue Over Time (Monthly Trend)")
+st.subheader(" Revenue Over Time (Monthly Trend)")
 
 monthly_revenue = (
     filtered_df
@@ -215,7 +215,7 @@ st.divider()
 # =====================================================
 # QUANTITY SOLD (DONUT – BETTER UX)
 # =====================================================
-st.subheader("📦 Quantity Sold by Category")
+st.subheader(" Quantity Sold by Category")
 
 qty_cat = (
     filtered_df.groupby("product_category")["quantity"]
@@ -245,7 +245,7 @@ st.divider()
 # =====================================================
 # DATA TABLE
 # =====================================================
-st.subheader("📋 Orders Data")
+st.subheader(" Orders Data")
 st.dataframe(filtered_df, use_container_width=True)
 
 # =====================================================
