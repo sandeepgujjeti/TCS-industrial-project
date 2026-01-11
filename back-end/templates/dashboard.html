@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>E-Commerce Dashboard</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f4f6f8;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .kpi-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .kpi {
+            background: white;
+            padding: 20px;
+            width: 23%;
+            text-align: center;
+            border-radius: 6px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 6px;
+        }
+
+        .report-container {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+        }
+
+        button {
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h1>E-Commerce Sales Dashboard</h1>
+
+<!-- KPI Section -->
+<div class="kpi-container">
+    <div class="kpi">
+        <h3>Total Revenue</h3>
+        <p id="totalRevenue">--</p>
+    </div>
+    <div class="kpi">
+        <h3>Total Orders</h3>
+        <p id="totalOrders">--</p>
+    </div>
+    <div class="kpi">
+        <h3>Avg Order Value</h3>
+        <p id="avgOrderValue">--</p>
+    </div>
+</div>
+
+<!-- Category Sales Chart -->
+<div class="chart-container">
+    <h3>Sales by Category</h3>
+    <canvas id="categoryChart"></canvas>
+</div>
+
+<!-- Report Generation -->
+<div class="report-container">
+    <h3>Generate Sales Report</h3>
+
+    <label>Start Date:</label>
+    <input type="date" id="startDate">
+
+    <label>End Date:</label>
+    <input type="date" id="endDate">
+
+    <button onclick="generateReport()">Download Report</button>
+</div>
+
+<script>
+/* -----------------------------
+   Load KPI Data
+------------------------------*/
+fetch('/api/kpis')
+.then(response => response.json())
+.then(data => {
+    document.getElementById('totalRevenue').innerText =
+        "$" + data.total_revenue.toFixed(2);
+
+    document.getElementById('totalOrders').innerText =
+        data.total_orders;
+
+    document.getElementById('avgOrderValue').innerText =
+        "$" + data.avg_order_value.toFixed(2);
+});
+
+/* -----------------------------
+   Category Sales Chart
+------------------------------*/
+fetch('/api/category_sales')
+.then(response => response.json())
+.then(data => {
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                label: 'Revenue',
+                data: Object.values(data),
+                backgroundColor: 'orange'
+            }]
+        }
+    });
+});
+
+/* -----------------------------
+   Report Generation
+------------------------------*/
+function generateReport() {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+
+    if (!start || !end) {
+        alert("Please select start and end dates");
+        return;
+    }
+
+    window.location.href =
+        `/api/generate_report?start_date=${start}&end_date=${end}`;
+}
+</script>
+
+</body>
+</html>
