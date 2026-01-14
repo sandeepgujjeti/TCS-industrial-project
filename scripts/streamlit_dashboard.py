@@ -15,16 +15,15 @@ st.set_page_config(
 )
 
 # =====================================================
-# GLOBAL MATPLOTLIB THEME (NON-DEFAULT)
+# GLOBAL MATPLOTLIB SETTINGS (PREVENT OVERRIDE)
 # =====================================================
 mpl.rcParams.update({
+    "figure.autolayout": True,
     "figure.facecolor": "#0B0F19",
     "axes.facecolor": "#111827",
     "axes.edgecolor": "#374151",
     "axes.labelcolor": "#E5E7EB",
     "axes.titleweight": "bold",
-    "axes.titlesize": 14,
-    "axes.labelsize": 11,
     "xtick.color": "#D1D5DB",
     "ytick.color": "#D1D5DB",
     "grid.color": "#374151",
@@ -34,7 +33,7 @@ mpl.rcParams.update({
 })
 
 # =====================================================
-# COLOR SYSTEM (INTENTIONAL, NOT DEFAULT)
+# COLOR PALETTE
 # =====================================================
 COLORS = {
     "blue": "#38BDF8",
@@ -59,13 +58,12 @@ df = pd.read_excel(DATA_PATH)
 # =====================================================
 df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
 df["purchase_date"] = pd.to_datetime(df["purchase_date"], errors="coerce")
-df = df.dropna(subset=["purchase_date"])
-df = df.sort_values(by="purchase_date")
+df = df.dropna(subset=["purchase_date"]).sort_values("purchase_date")
 
 # =====================================================
 # SIDEBAR FILTERS
 # =====================================================
-st.sidebar.markdown("##  Filters")
+st.sidebar.markdown("## 🔍 Filters")
 
 date_range = st.sidebar.date_input(
     "Date Range",
@@ -100,152 +98,135 @@ st.markdown(
 st.divider()
 
 # =====================================================
-# KPI SECTION
+# KPIs
 # =====================================================
 k1, k2, k3, k4 = st.columns(4)
-
-k1.metric(" Orders", f"{len(filtered_df):,}")
-k2.metric(" Revenue", f"${filtered_df['total_purchase_amount'].sum():,.0f}")
-k3.metric(" Avg Order", f"${filtered_df['total_purchase_amount'].mean():.2f}")
-k4.metric(" Return Rate", f"{filtered_df['returns'].mean()*100:.1f}%")
+k1.metric("📦 Orders", f"{len(filtered_df):,}")
+k2.metric("💰 Revenue", f"${filtered_df['total_purchase_amount'].sum():,.0f}")
+k3.metric("🧾 Avg Order", f"${filtered_df['total_purchase_amount'].mean():.2f}")
+k4.metric("🔁 Return Rate", f"{filtered_df['returns'].mean()*100:.1f}%")
 
 st.divider()
 
 # =====================================================
-# REVENUE BY CATEGORY (BAR)
+# REVENUE BY CATEGORY (BAR – NORMAL SIZE)
 # =====================================================
-st.subheader(" Revenue by Product Category")
+st.subheader("📊 Revenue by Product Category")
 
 rev_cat = (
     filtered_df.groupby("product_category")["total_purchase_amount"]
-    .sum()
-    .sort_values(ascending=False)
+    .sum().sort_values(ascending=False)
 )
 
-fig, ax = plt.subplots(figsize=(9, 4))
-ax.bar(
-    rev_cat.index,
-    rev_cat.values,
-    color=[COLORS["blue"], COLORS["green"], COLORS["amber"], COLORS["purple"]]
-)
-ax.set_title("Revenue Contribution by Category")
+fig, ax = plt.subplots(figsize=(7, 4))
+ax.bar(rev_cat.index, rev_cat.values,
+       color=[COLORS["blue"], COLORS["green"], COLORS["amber"], COLORS["purple"]])
 ax.set_ylabel("Revenue")
+ax.set_title("Revenue Contribution by Category")
 ax.grid(axis="y")
 
-st.pyplot(fig, use_container_width=True)
-
+st.pyplot(fig, use_container_width=False)
 st.divider()
 
 # =====================================================
-# PAYMENT METHOD (PIE)
+# PAYMENT METHOD (PIE – COMPACT)
 # =====================================================
-st.subheader(" Payment Method Distribution")
+st.subheader("💳 Payment Method Distribution")
 
 payment_data = filtered_df["payment_method"].value_counts()
 
-fig, ax = plt.subplots(figsize=(6, 6))
+fig, ax = plt.subplots(figsize=(4, 4))
 ax.pie(
     payment_data.values,
     labels=payment_data.index,
     autopct="%1.1f%%",
-    startangle=120,
+    startangle=90,
+    radius=0.9,
     colors=[COLORS["teal"], COLORS["blue"], COLORS["amber"], COLORS["pink"]],
-    wedgeprops={"linewidth": 1.5, "edgecolor": COLORS["bg"]}
+    wedgeprops={"edgecolor": COLORS["bg"]}
 )
-ax.set_title("Customer Payment Preferences")
+ax.set_title("Payment Preferences", pad=8)
 
-st.pyplot(fig, use_container_width=True)
-
+st.pyplot(fig, use_container_width=False)
 st.divider()
 
 # =====================================================
-# CUSTOMER CHURN (PIE – 0 & 1 EXPLAINED)
+# CUSTOMER CHURN (PIE – NORMAL)
 # =====================================================
-st.subheader(" Customer Churn")
+st.subheader("🧑‍🤝‍🧑 Customer Churn")
 
-churn_map = {0: "Retained Customers", 1: "Churned Customers"}
+churn_map = {0: "Retained", 1: "Churned"}
 churn_data = filtered_df["churn"].map(churn_map).value_counts()
 
-fig, ax = plt.subplots(figsize=(6, 6))
+fig, ax = plt.subplots(figsize=(4, 4))
 ax.pie(
     churn_data.values,
     labels=churn_data.index,
     autopct="%1.1f%%",
     startangle=90,
+    radius=0.9,
     colors=[COLORS["green"], COLORS["red"]],
-    explode=(0, 0.05),
     wedgeprops={"edgecolor": COLORS["bg"]}
 )
-ax.set_title("Retention vs Churn")
+ax.set_title("Retention vs Churn", pad=8)
 
-st.pyplot(fig, use_container_width=True)
-
+st.pyplot(fig, use_container_width=False)
 st.divider()
 
 # =====================================================
-# REVENUE OVER TIME (MONTHLY LINE)
+# REVENUE OVER TIME (LINE – NORMAL WIDTH)
 # =====================================================
-st.subheader(" Revenue Over Time (Monthly Trend)")
+st.subheader("📈 Revenue Over Time (Monthly)")
 
 monthly_revenue = (
-    filtered_df
-    .groupby(filtered_df["purchase_date"].dt.to_period("M"))
-    ["total_purchase_amount"]
-    .sum()
+    filtered_df.groupby(filtered_df["purchase_date"].dt.to_period("M"))
+    ["total_purchase_amount"].sum()
 )
 monthly_revenue.index = monthly_revenue.index.astype(str)
 
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(
-    monthly_revenue.index,
-    monthly_revenue.values,
-    color=COLORS["blue"],
-    linewidth=3,
-    marker="o",
-    markersize=4
-)
-ax.set_title("Monthly Revenue Trend")
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(monthly_revenue.index, monthly_revenue.values,
+        color=COLORS["blue"], linewidth=2, marker="o", markersize=3)
 ax.set_ylabel("Revenue")
-ax.grid(True)
+ax.set_title("Monthly Revenue Trend")
+ax.grid()
 
-st.pyplot(fig, use_container_width=True)
-
+st.pyplot(fig, use_container_width=False)
 st.divider()
 
 # =====================================================
-# QUANTITY SOLD (DONUT – BETTER UX)
+# QUANTITY SOLD (DONUT – NORMAL SIZE)
 # =====================================================
-st.subheader(" Quantity Sold by Category")
+st.subheader("📦 Quantity Sold by Category")
 
 qty_cat = (
     filtered_df.groupby("product_category")["quantity"]
-    .sum()
-    .sort_values(ascending=False)
+    .sum().sort_values(ascending=False)
 )
 
-fig, ax = plt.subplots(figsize=(6, 6))
+fig, ax = plt.subplots(figsize=(4.5, 4.5))
 ax.pie(
     qty_cat.values,
     labels=qty_cat.index,
     autopct="%1.1f%%",
     startangle=90,
+    radius=0.9,
     colors=[COLORS["purple"], COLORS["blue"], COLORS["amber"], COLORS["teal"]],
     wedgeprops={"edgecolor": COLORS["bg"]}
 )
 
-centre = plt.Circle((0, 0), 0.6, fc=COLORS["bg"])
+centre = plt.Circle((0, 0), 0.55, fc=COLORS["bg"])
 fig.gca().add_artist(centre)
 
-ax.set_title("Category-wise Quantity Contribution")
+ax.set_title("Category-wise Quantity Share", pad=8)
 
-st.pyplot(fig, use_container_width=True)
-
+st.pyplot(fig, use_container_width=False)
 st.divider()
 
 # =====================================================
 # DATA TABLE
 # =====================================================
-st.subheader(" Orders Data")
+st.subheader("📋 Orders Data")
 st.dataframe(filtered_df, use_container_width=True)
 
 # =====================================================
@@ -260,4 +241,4 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-# =====================================================
+w
