@@ -3,6 +3,7 @@ import streamlit as st
 from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import matplotlib.dates as mdates
 
 # =====================================================
 # PAGE CONFIG
@@ -15,7 +16,7 @@ st.set_page_config(
 )
 
 # =====================================================
-# GLOBAL MATPLOTLIB SETTINGS (PREVENT OVERRIDE)
+# GLOBAL MATPLOTLIB SETTINGS
 # =====================================================
 mpl.rcParams.update({
     "figure.autolayout": True,
@@ -109,7 +110,7 @@ k4.metric("🔁 Return Rate", f"{filtered_df['returns'].mean()*100:.1f}%")
 st.divider()
 
 # =====================================================
-# REVENUE BY CATEGORY (BAR – NORMAL SIZE)
+# REVENUE BY CATEGORY
 # =====================================================
 st.subheader("📊 Revenue by Product Category")
 
@@ -119,8 +120,11 @@ rev_cat = (
 )
 
 fig, ax = plt.subplots(figsize=(7, 4))
-ax.bar(rev_cat.index, rev_cat.values,
-       color=[COLORS["blue"], COLORS["green"], COLORS["amber"], COLORS["purple"]])
+ax.bar(
+    rev_cat.index,
+    rev_cat.values,
+    color=[COLORS["blue"], COLORS["green"], COLORS["amber"], COLORS["purple"]]
+)
 ax.set_ylabel("Revenue")
 ax.set_title("Revenue Contribution by Category")
 ax.grid(axis="y")
@@ -129,7 +133,7 @@ st.pyplot(fig, use_container_width=False)
 st.divider()
 
 # =====================================================
-# PAYMENT METHOD (PIE – COMPACT)
+# PAYMENT METHOD
 # =====================================================
 st.subheader("💳 Payment Method Distribution")
 
@@ -151,7 +155,7 @@ st.pyplot(fig, use_container_width=False)
 st.divider()
 
 # =====================================================
-# CUSTOMER CHURN (PIE – NORMAL)
+# CUSTOMER CHURN
 # =====================================================
 st.subheader("🧑‍🤝‍🧑 Customer Churn")
 
@@ -174,28 +178,41 @@ st.pyplot(fig, use_container_width=False)
 st.divider()
 
 # =====================================================
-# REVENUE OVER TIME (LINE – NORMAL WIDTH)
+# REVENUE OVER TIME (FIXED)
 # =====================================================
 st.subheader("📈 Revenue Over Time (Monthly)")
 
 monthly_revenue = (
-    filtered_df.groupby(filtered_df["purchase_date"].dt.to_period("M"))
-    ["total_purchase_amount"].sum()
+    filtered_df
+    .set_index("purchase_date")
+    .resample("M")["total_purchase_amount"]
+    .sum()
 )
-monthly_revenue.index = monthly_revenue.index.astype(str)
 
-fig, ax = plt.subplots(figsize=(8, 4))
-ax.plot(monthly_revenue.index, monthly_revenue.values,
-        color=COLORS["blue"], linewidth=2, marker="o", markersize=3)
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.plot(
+    monthly_revenue.index,
+    monthly_revenue.values,
+    color=COLORS["blue"],
+    linewidth=2,
+    marker="o",
+    markersize=4
+)
+
+ax.xaxis.set_major_locator(mdates.MonthLocator(interval=2))
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+
 ax.set_ylabel("Revenue")
 ax.set_title("Monthly Revenue Trend")
 ax.grid()
+plt.tight_layout()
 
 st.pyplot(fig, use_container_width=False)
 st.divider()
 
 # =====================================================
-# QUANTITY SOLD (DONUT – NORMAL SIZE)
+# QUANTITY SOLD
 # =====================================================
 st.subheader("📦 Quantity Sold by Category")
 
